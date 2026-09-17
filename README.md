@@ -1,2 +1,207 @@
-# portfolio
-este repositorio esta pensando para mostrar mis avilidades sin comprometer informacion importante de ninguna empresa/clente
+# Ecommerce Logistics Portfolio
+
+This project is a Python-based analytics portfolio that generates e-commerce and logistics data, processes it through an ETL pipeline, stores it in SQLite, and exposes the results through a Streamlit dashboard. It is designed as a practical demonstration of data engineering, automation, and dashboarding in a single repository.
+
+## Overview
+
+The repository addresses a common business need: turning raw sales and operational data into a usable operational dashboard for decision-making. Instead of relying on a production system or external API, the project creates realistic sample datasets, normalizes and validates them, loads them into a local SQLite database, and then visualizes KPIs such as revenue, ticket count, product performance, and logistics status.
+
+The project is intentionally local and self-contained. That makes it suitable as a portfolio artifact: it shows how I structure a data pipeline, handle data quality issues, and build a simple but useful business intelligence interface without adding unnecessary complexity.
+
+## What This Project Demonstrates
+
+| Area | Evidence in the project | Why it matters |
+| --- | --- | --- |
+| Python development | Core logic is implemented in Python scripts and a test suite | Shows practical scripting and application development |
+| Data processing | Clean-up, filtering, merging, aggregation, and derived metrics are implemented in the ETL flow | Demonstrates data engineering fundamentals |
+| ETL workflow design | `run_full_project.py` orchestrates data generation, SQLite export, and pipeline execution | Shows end-to-end automation and pipeline thinking |
+| SQLite usage | Data is stored in `ecommerce_portfolio.db` and queried for reporting | Demonstrates database integration and local persistence |
+| Dashboarding | `app.py` uses Streamlit and Plotly for interactive analytics | Shows ability to turn raw data into user-facing insights |
+| Testing | `test_etl_pipeline.py` validates extraction, transformation, idempotent loading, and sample-mode behavior | Indicates quality checks and regression awareness |
+| Software organization | Separate responsibilities exist for data generation, ETL, configuration, and UI | Demonstrates modular design |
+| Data quality handling | Duplicate removal, null-filling, invalid quantity filtering, and fallback data generation | Shows attention to operational realities |
+
+## Key Features
+
+- Generates synthetic e-commerce and logistics datasets for a portfolio environment.
+- Cleans sales records by removing duplicates, filtering invalid quantities, filling null values, and joining product metadata.
+- Builds an ETL pipeline in `03_etl_pipeline.py` with extraction, transformation, and loading phases.
+- Prevents duplicate inserts in `ventas_diarias_automatizadas` by checking for existing `id_venta` values before appending.
+- Exports transformed results to SQLite tables such as `ventas_limpias` and `logistica_operaciones`.
+- Produces a Power BI-ready CSV dataset from the SQL tables for dashboard consumption.
+- Visualizes revenue, ticket count, average ticket value, preparation time, category performance, logistics states, and top products in a Streamlit dashboard.
+- Includes a fallback data-generation path when required CSV files are not present, avoiding a hard failure during local execution.
+
+## Architecture
+
+The repository follows a simple local data pipeline architecture:
+
+```mermaid
+flowchart LR
+    A[run_full_project.py] --> B[Generate sample data]
+    B --> C[Export SQLite tables]
+    C --> D[Export Power BI dataset]
+    D --> E[03_etl_pipeline.py]
+    E --> F[Extract CSV data]
+    F --> G[Transform and clean]
+    G --> H[Load to SQLite]
+    H --> I[app.py]
+    I --> J[Streamlit dashboard]
+```
+
+The operational flow is local and deterministic for this project: the orchestration script creates a dataset, stores it in SQLite, writes a CSV used for reporting, runs the ETL pipeline, and finally serves the dashboard.
+
+## Technology Stack
+
+### Backend and processing
+- Python
+- pandas
+- NumPy
+- SQLite
+
+### Dashboard and visualization
+- Streamlit
+- Plotly
+- Matplotlib
+- Seaborn
+
+### Quality and tooling
+- pytest
+- Ruff
+
+## Project Structure
+
+- `run_full_project.py` — creates the main local dataset, exports SQL tables, writes CSVs, and runs the ETL sequence.
+- `03_etl_pipeline.py` — actual extraction, transformation, and load workflow for the ETL process.
+- `app.py` — Streamlit dashboard that reads the exported CSV and presents KPIs and charts.
+- `config.py` — central file with dataset paths, database location, and styling constants.
+- `test_etl_pipeline.py` — automated tests covering extraction fallback, transformation logic, idempotent loading, and sample-mode behavior.
+- `ecommerce_portfolio.db` — SQLite database generated by the project.
+- `dataset_power_bi.csv` — CSV used as the data source for the dashboard.
+- `ventas.csv` and `productos.csv` — source files produced for the ETL process.
+- `pipeline_ejecucion.log` — execution log produced by the ETL pipeline.
+- `design-system/` — design system documents that describe the dashboard styling rules and page overrides.
+
+## How It Works
+
+The end-to-end flow is straightforward:
+
+1. `run_full_project.py` generates a synthetic sales and logistics dataset.
+2. The script cleans the generated data and stores it in SQLite tables named `ventas_limpias` and `logistica_operaciones`.
+3. It exports a joined dataset to `dataset_power_bi.csv` for analytics consumption.
+4. It writes `ventas.csv` and `productos.csv` as the raw inputs for the ETL pipeline.
+5. `03_etl_pipeline.py` loads those CSV files, validates basic conditions, transforms them, and appends the cleaned results to `ventas_diarias_automatizadas`.
+6. `app.py` reads `dataset_power_bi.csv`, applies sidebar filters, and renders charts and KPIs using Streamlit and Plotly.
+
+## Getting Started
+
+This project does not use Docker or environment variables. It is intended to run locally in a Python environment.
+
+### 1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd <repository-folder>
+```
+
+### 2. Install dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 3. Generate the database and ETL output
+
+```bash
+python run_full_project.py
+```
+
+This command creates the SQLite database, exports the Power BI dataset, writes CSVs for the ETL, and runs the ETL pipeline.
+
+### 4. Run the dashboard
+
+```bash
+python -m streamlit run app.py
+```
+
+The dashboard is then available through the Streamlit local server.
+
+## Usage
+
+After running the project, the repository provides two main user flows:
+
+- Data pipeline execution through `run_full_project.py`
+- Dashboard review through the Streamlit interface in `app.py`
+
+The dashboard includes:
+
+- Total revenue
+- Ticket count
+- Average ticket value
+- Average preparation time
+- Revenue by category
+- Dispatch status distribution
+- Monthly revenue trend
+- Top-selling products
+- Filter controls for shift, dispatch status, and category
+
+The filtered data can be downloaded as a CSV from the dashboard panel.
+
+## Technical Highlights
+
+This project has several engineering details that are worth noting:
+
+- The ETL process is modularized into clear stages: extraction, transformation, and loading.
+- Duplicate handling is implemented explicitly to avoid repeated rows when the same source dataset is processed again.
+- The pipeline contains a sample-data fallback path that prevents hard failure when the expected CSV files do not exist.
+- The application validates required columns before rendering the dashboard, improving resilience during data issues.
+- Data transformations include value normalization, null-filling, derived revenue calculations, and date-based aggregation.
+- The dashboard uses filters to allow exploratory analysis without changing the underlying dataset.
+- The project keeps configuration in one place through `config.py`, making file paths and styling constants easier to manage.
+
+## Testing
+
+The repository includes automated tests in `test_etl_pipeline.py`. The tests cover:
+
+- fallback data generation when the source CSVs are missing
+- successful loading of real CSV inputs
+- revenue computation in the transformation layer
+- idempotent database loading behavior
+- sample mode behavior where the pipeline does not persist data
+
+To run the current tests:
+
+```bash
+python -m pytest -q
+```
+
+At the time of validation, the project’s existing test suite passes.
+
+## Future Improvements
+
+The following are reasonable next steps for this project, but they are not currently implemented:
+
+- Add a more formal CI pipeline for linting and test automation.
+- Add environment separation for development and production settings.
+- Introduce a real REST API or backend service layer if the project needs to scale beyond local data work.
+- Improve observability with structured logging and alerting around ETL failures.
+- Expand test coverage to include dashboard behavior and more edge-case data scenarios.
+- Improve data validation and schema enforcement as the dataset grows.
+
+## Skills Demonstrated
+
+- Python development
+- Data processing and ETL design
+- SQLite database usage
+- Business intelligence dashboarding
+- Data cleaning and validation
+- Automation and scripting
+- Dashboard UX with filtering and KPI display
+- Software modularization and configuration management
+- Testing and regression checks
+
+## Why This Project Matters
+
+This project is relevant as a portfolio artifact because it demonstrates a realistic engineering workflow: build data, clean it, store it, automate the pipeline, and present insights through a dashboard. It shows technical judgment around data quality, local architecture, and the practical separation of responsibilities between generation, transformation, storage, and reporting.
+
+It is not a productized SaaS application, and the repository is honest about that. What it does demonstrate clearly is that I can work with real operational data flows, build useful analytics tools, and package them in a way that is understandable, maintainable, and easy to extend.
